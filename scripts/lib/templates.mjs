@@ -160,21 +160,35 @@ ${extraHead}
 <body class="${bodyClass}">
 <a class="skip" href="#contenu">Aller au contenu</a>
 ${preview ? `<p class="preview-bar">Version de test du nouveau site. Le site officiel reste <a href="${esc(ctx.wpSource)}">${esc(ctx.wpSource.replace(/^https?:\/\//, ''))}</a>.</p>` : ''}
-<header class="masthead">
+<div class="mast-big">
   <div class="wrap mast">
     <p class="dateline" data-today>${esc(weekday(buildDate))}</p>
     <a class="logo" href="${u('/')}"><img src="${u('/logo.png')}" alt="${esc(config.name)}" width="485" height="236"></a>
     <div class="tools">
       <a class="tool" href="${u('/recherche/')}">${icon.search}<span>Rechercher</span></a>
       <button class="tool" data-menu aria-expanded="false" aria-controls="drawer">${icon.menu}<span>Rubriques</span></button>
+      ${donateButton(ctx)}
+    </div>
+  </div>
+</div>
+<span class="stick-sentinel" aria-hidden="true"></span>
+<header class="site-head">
+  <div class="bar wrap">
+    <a class="logo" href="${u('/')}"><img src="${u('/logo.png')}" alt="${esc(config.name)}" width="485" height="236"></a>
+    <div class="bar-tools">
+      ${donateButton(ctx)}
+      <a class="tool" href="${u('/recherche/')}" aria-label="Rechercher">${icon.search}</a>
+      <button class="tool" data-menu aria-expanded="false" aria-controls="drawer" aria-label="Rubriques">${icon.menu}</button>
     </div>
   </div>
   <nav class="sections" aria-label="Rubriques">
     <div class="wrap"><ul>
+      <li class="mini"><a class="mini-logo" href="${u('/')}" tabindex="-1"><img src="${u('/logo.png')}" alt="" width="485" height="236"></a></li>
       <li><a href="${u('/')}"${on('/')}>À la une</a></li>
       ${ctx.nav.map(n => `<li><a href="${u(n.path)}"${on(n.path)}>${esc(n.label)}</a></li>`).join('')}
       <li class="push"><a href="${u('/direct/')}"${on('/direct/')}>${config.liveTv ? '<span class="live">En direct</span>' : 'TV'}</a></li>
       <li><a href="${u('/shorts/')}"${on('/shorts/')}>Shorts</a></li>
+      <li class="mini">${donateButton(ctx, { tabindex: -1 })}</li>
     </ul></div>
   </nav>
   <div class="drawer" id="drawer" hidden>
@@ -184,9 +198,11 @@ ${preview ? `<p class="preview-bar">Version de test du nouveau site. Le site off
         <div><input id="drawer-q" name="q" type="search" autocomplete="off"><button type="submit">Rechercher</button></div>
       </form>
       <div class="drawer-cols">${ctx.drawer}</div>
+      <p class="drawer-donate">${esc(config.name)} est un média indépendant, financé par ses lecteurs. ${donateButton(ctx)}</p>
     </div>
   </div>
 </header>
+${breakingBar(ctx)}
 <main id="contenu">
 ${body}
 </main>
@@ -204,6 +220,7 @@ ${body}
       </ul>
     </nav>
     <div class="col-contact">
+      <p class="support">Soutenez une information haïtienne indépendante. ${donateButton(ctx)}</p>
       <p>Écrire à la rédaction : <span class="sel">${esc(config.email)}</span></p>
       <p class="follow">Suivre ${esc(config.name)} sur
         <a href="${s.whatsapp}" rel="noopener">WhatsApp</a>,
@@ -215,7 +232,39 @@ ${body}
     </div>
   </div>
 </footer>
+${bottomBanner(ctx, path)}
 <script src="${assets.js}" defer></script>
 </body>
 </html>`;
+}
+
+/* ---------- reader revenue (Newspack-style campaigns) ---------- */
+export function donateButton(ctx, { tabindex } = {}) {
+  return `<a class="donate" href="${ctx.u('/soutenir/')}"${tabindex !== undefined ? ` tabindex="${tabindex}"` : ''}>${esc(ctx.config.donate.label)}</a>`;
+}
+
+// Shown inside articles, after the fourth paragraph
+export function supportPrompt(ctx) {
+  return `<aside class="support-prompt" data-pagefind-ignore aria-label="Soutenir ${esc(ctx.config.name)}">
+    <h2>Cette information vous est utile ?</h2>
+    <p>${esc(ctx.config.name)} ne dépend d'aucun parti ni d'aucun patron. Ce sont nos lecteurs, en Haïti et dans la diaspora, qui nous permettent de continuer.</p>
+    <a class="donate" href="${ctx.u('/soutenir/')}">Soutenir la rédaction</a>
+  </aside>`;
+}
+
+// Bar at the bottom of the screen, shown by app.js after a few pages, closable
+export function bottomBanner(ctx, path) {
+  if (path === '/soutenir/') return '';
+  return `<div class="bottom-banner" data-banner data-after="${Number(ctx.config.donate.bannerAfterViews) || 2}" hidden role="region" aria-label="Soutenir ${esc(ctx.config.name)}">
+    <div class="wrap">
+      <p><b>L'information indépendante a un coût.</b> Un don, même petit, aide ${esc(ctx.config.name)} à rester libre.</p>
+      <div class="bb-actions"><a class="donate" href="${ctx.u('/soutenir/')}">${esc(ctx.config.donate.label)}</a><button type="button" data-banner-close>Plus tard</button></div>
+    </div>
+  </div>`;
+}
+
+export function breakingBar(ctx) {
+  const b = ctx.breaking;
+  if (!b) return '';
+  return `<div class="breaking" role="status"><div class="wrap"><span class="breaking-label">Dernière minute</span><a href="${esc(b.url)}">${esc(b.text)}</a></div></div>`;
 }

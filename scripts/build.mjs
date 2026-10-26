@@ -59,6 +59,19 @@ const sectionPosts = (slug) => {
   return c ? postsInCats([c.id]) : [];
 };
 
+const packages = (config.packages || []).map(pk => {
+  const re = new RegExp(pk.match, 'i');
+  return { ...pk, path: `/dossiers/${pk.slug}/`, posts: posts.filter(p => re.test(p.title)) };
+}).filter(pk => pk.posts.length >= 4);
+const authorById = new Map(wp.authors.map(a => [a.id, a]));
+
+// Breaking-news bar: set in config, or a WordPress "sticky" post less than 48 hours old
+const breaking = (() => {
+  if (config.breaking && config.breaking.text) return { text: config.breaking.text, url: config.breaking.url || '#' };
+  const s = posts.find(p => p.sticky && Date.now() - new Date(p.date).getTime() < 48 * 3600e3);
+  return s ? { text: s.title, url: u(s.path) } : null;
+})();
+
 const footerPages = config.pages.map(s => wp.pages.find(p => p.slug === s)).filter(Boolean);
 
 // shorts: real Shorts when the channel has them, otherwise the latest videos
@@ -74,7 +87,8 @@ const topCats = wp.categories.filter(c => c.parent === 0 && c.slug !== 'news')
 const drawer = topCats.map(({ c, kids }) => {
   const k = kids.filter(k => postsInCats([k.id]).length > 0);
   return `<div><h3><a href="${u(c.path)}">${esc(c.name)}</a></h3>${k.length ? `<ul>${k.map(k => `<li><a href="${u(k.path)}">${esc(k.name)}</a></li>`).join('')}</ul>` : ''}</div>`;
-}).join('') + `<div><h3>Vidéo</h3><ul><li><a href="${u('/direct/')}">Ayiti an Avan TV</a></li><li><a href="${u('/shorts/')}">Shorts</a></li></ul></div>`;
+}).join('') + `<div><h3>Vidéo</h3><ul><li><a href="${u('/direct/')}">Ayiti an Avan TV</a></li><li><a href="${u('/shorts/')}">Shorts</a></li></ul></div>`
+  + ((config.packages || []).length ? `<div><h3>Dossiers</h3><ul>${config.packages.map(pk => `<li><a href="${u('/dossiers/' + pk.slug + '/')}">${esc(pk.title)}</a></li>`).join('')}</ul></div>` : '');
 
 /* ---------- assets ---------- */
 const hash = (s) => crypto.createHash('md5').update(s).digest('hex').slice(0, 8);
@@ -82,7 +96,7 @@ const css = await fs.readFile(path.join(SRC, 'styles.css'), 'utf8');
 const js = await fs.readFile(path.join(SRC, 'app.js'), 'utf8');
 const assets = { css: u(`/assets/site.css?v=${hash(css)}`), js: u(`/assets/app.js?v=${hash(js)}`) };
 
-const ctx = { config, videos, u, abs, assets, preview: PREVIEW, buildDate, nav, drawer, footerPages, primaryCat, wpSource: wp.source };
+const ctx = { config, videos, u, abs, assets, preview: PREVIEW, buildDate, nav, drawer, footerPages, primaryCat, wpSource: wp.source, breaking };
 
 /* ---------- output helpers ---------- */
 let written = 0;
@@ -158,6 +172,23 @@ function cleanPage(html) {
 // WordPress makes the summary from the first paragraph when none is written; don't show it twice.
 const norm = (s) => decode(String(s).replace(/<[^>]*>/g, ' ')).replace(/[\s\u00a0]+/g, ' ').trim().toLowerCase();
 const showChapo = (p, html) => p.excerpt && !norm(html).startsWith(norm(p.excerpt).replace(/…$/, '').slice(0, 80));
+
+// Support prompt after the fourth paragraph, or at the end of short articles
+function withPrompt(html) {
+  let n = 0, done = false;
+  const out = html.replace(/<\/p>/g, (m) => {
+    n++;
+    if (n === 4 && !done) { done = true; return m + T.supportPrompt(ctx); }
+    return m;
+  });
+  return done ? out : out + T.supportPrompt(ctx);
+}
+
+function authorBio(p) {
+  const a = authorById.get(p.author.id);
+  if (!a || !a.bio) return '';
+  return `<section class="author-bio" data-pagefind-ignore><h2>${esc(a.name)}</h2><p>${esc(a.bio)}</p><a class="more" href="${u(a.path)}">Tous ses articles</a></section>`;
+}
 
 const readingTime = (html) => Math.max(1, Math.round(html.replace(/<[^>]*>/g, ' ').split(/\s+/).filter(Boolean).length / 220));
 
@@ -245,7 +276,38 @@ async function buildHome() {
 
   const hs = config.homeSections;
   const vids = videos.videos;
+
+  // Same day in earlier years ("Ce jour-là")
+  // dayKey is "jj/mm/aaaa": compare day and month, skip this year
+  const md = T.dayKey(buildDate).slice(0, 5), yr = T.dayKey(buildDate).slice(6);
+  const onThisDay = posts.filter(p => T.dayKey(p.date).slice(0, 5) === md && T.dayKey(p.date).slice(6) !== yr).slice(0, 3);
+
+  const pkg = packages[0];
+  const packageBand = pkg ? (() => {
+    const list = pkg.posts.filter(p => !used.has(p.id));
+    const main = list.find(p => p.image); if (!main) return '';
+    used.add(main.id);
+    const rest = list.filter(p => p !== main).slice(0, 4); rest.forEach(p => used.add(p.id));
+    return `<section class="band package" aria-labelledby="s-pkg"><div class="wrap">
+      ${T.sechead(ctx, pkg.title, pkg.path, 'Tout le dossier').replace('<h2>', '<h2 id="s-pkg">')}
+      <p class="pkg-intro">${esc(pkg.intro)}</p>
+      <div class="spread-grid">
+        <article class="story big"><a href="${u(main.path)}">${T.img(main.image, { sizes: '(max-width:820px) 100vw, 58vw' })}<h3 class="hl">${esc(main.title)}</h3></a><p class="sf">${esc(T.trim(main.excerpt, 220))}</p>${T.meta(ctx, main)}</article>
+        <ul class="lines">${rest.map(p => T.line(ctx, p)).join('')}</ul>
+      </div>
+    </div></section>`;
+  })() : '';
+
+  const tips = config.tips || {};
+  const tipsBand = `<section class="band tips" aria-labelledby="h-tips"><div class="wrap tips-grid">
+    <h2 id="h-tips">Une info, une photo, une vidéo ? Envoyez-la à la rédaction.</h2>
+    <div><p>Vous êtes témoin d'un événement en Haïti ou dans la diaspora ? Écrivez-nous. Nous vérifions chaque information avant de la publier, et nous protégeons nos sources.</p>
+      <p class="tips-contact"><a href="mailto:${esc(tips.email || config.email)}">${esc(tips.email || config.email)}</a>${tips.whatsapp ? ` ou WhatsApp <a href="https://wa.me/${esc(tips.whatsapp.replace(/\D/g, ''))}">${esc(tips.whatsapp)}</a>` : ''}</p></div>
+  </div></section>`;
+
+  const liveBand = config.liveTv ? `<section class="liveband" aria-label="En direct"><div class="wrap"><div class="tv-grid">${T.player(ctx, { big: true })}<div><h2><span class="live">En direct</span> Ayiti an Avan TV</h2><p><a class="more" href="${u('/direct/')}">Programme et replays</a></p></div></div></div></section>` : '';
   const body = `
+  ${liveBand}
   <div class="wrap front">
     <article class="lead">
       <a href="${u(lead.path)}">${T.img(lead.image, { eager: true, sizes: '(max-width:820px) 100vw, 64vw' })}<h1 class="hl">${esc(lead.title)}</h1></a>
@@ -256,11 +318,13 @@ async function buildHome() {
       <h2 id="h-wire"><a href="${u('/actualites/')}">En continu</a></h2>
       <ul>${wireHtml}</ul>
       <a class="more" href="${u('/actualites/')}">Toute l’actualité</a>
+      ${onThisDay.length ? `<section class="otd" aria-labelledby="h-otd"><h2 id="h-otd">Ce jour-là</h2><ul>${onThisDay.map(p => `<li><time datetime="${p.date}">${esc(T.dateLong(p.date))}</time><a href="${u(p.path)}" class="hl">${esc(p.title)}</a></li>`).join('')}</ul></section>` : ''}
     </aside>
     <div class="seconds">${seconds.map(p => T.story(ctx, p, { standfirst: true, sizes: '(max-width:820px) 100vw, 30vw' })).join('')}</div>
   </div>
 
   ${spread(hs.trio[0])}
+  ${packageBand}
   ${columns(hs.trio.slice(1).concat(hs.trio2[0]))}
 
   ${vids.length ? `<section class="tvband" aria-labelledby="h-tv"><div class="wrap">
@@ -277,6 +341,7 @@ async function buildHome() {
   ${briefs(hs.rows[1])}
   ${strip(hs.rows[2])}
   ${columns(hs.trio2.slice(1).concat(['diplomatie']))}
+  ${tipsBand}
   `;
 
   await page('/', {
@@ -323,8 +388,9 @@ async function buildArticles() {
           </div>
         </div>
         ${p.image ? `<figure class="hero"><img src="${esc(p.image.src)}"${p.image.srcset ? ` srcset="${esc(p.image.srcset)}" sizes="(max-width:820px) 100vw, 760px"` : ''} alt="${esc(p.image.alt)}" fetchpriority="high"${p.image.width ? ` width="${p.image.width}" height="${p.image.height}"` : ''}>${capText ? `<figcaption>${esc(capText)}</figcaption>` : ''}</figure>` : ''}
-        <div class="prose">${html}</div>
+        <div class="prose">${withPrompt(html)}</div>
         ${tags.length ? `<p class="tags" data-pagefind-ignore>Sujets : ${tags.map(t => `<a href="${u(t.path)}">${esc(t.name)}</a>`).join(', ')}</p>` : ''}
+        ${authorBio(p)}
         <p class="follow-note" data-pagefind-ignore>Recevez nos articles sur la <a href="${config.social.whatsapp}" rel="noopener">chaîne WhatsApp</a> ou sur <a href="${config.social.telegram}" rel="noopener">Telegram</a>.</p>
       </article>
       <aside class="article-aside">
@@ -392,6 +458,9 @@ async function buildListings() {
     if (!list.length) continue;
     await listing(a.path, { title: `Articles de ${a.name}`, list });
   }
+  for (const pk of packages) {
+    await listing(pk.path, { title: pk.title, intro: pk.intro, list: pk.posts });
+  }
   for (const alias of config.listingAliases) {
     await listing(`/${alias}/`, { title: 'Toute l’actualité', list: posts });
   }
@@ -409,6 +478,48 @@ async function buildPages() {
       body: `<div class="wrap narrow listing"><header class="listhead"><h1>${esc(p.title)}</h1></header><div class="prose plain">${html}</div></div>`,
     });
   }
+}
+
+/* ======================================================
+   SUPPORT / DONATE (Newspack-style donate block)
+   ====================================================== */
+async function buildSupport() {
+  const d = config.donate;
+  const freq = [['once', 'Une fois'], ['month', 'Chaque mois'], ['year', 'Chaque année']];
+  const cur = d.currency === 'USD' ? '$' : d.currency;
+  const methods = [['card', 'Carte bancaire'], ['paypal', 'PayPal'], ['moncash', 'MonCash']];
+  const configured = methods.filter(([k]) => d.links[k]);
+  const tiers = (f) => d.amounts[f].map((a, i) => `<label class="tier"><input type="radio" name="amount-${f}" value="${a}"${a === d.default[f] ? ' checked' : ''}><span>${cur}${a}</span></label>`).join('');
+  const body = `<div class="wrap support-page">
+    <header class="listhead"><h1>Soutenez une information haïtienne indépendante</h1>
+      <p class="intro">${esc(config.name)} n'appartient à aucun parti, à aucun homme d'affaires, à aucun gouvernement. Nous publions des informations vérifiées, en français et en kreyòl, pour Haïti et sa diaspora. Vos dons paient les reportages, la vérification et la future chaîne de télévision.</p></header>
+    <div class="support-grid">
+      <form class="donate-form" data-donate data-links='${esc(JSON.stringify(d.links))}' data-currency="${esc(d.currency)}">
+        <fieldset class="freq"><legend>Fréquence</legend>
+          ${freq.map(([k, l], i) => `<label><input type="radio" name="freq" value="${k}"${i === 0 ? ' checked' : ''}><span>${l}</span></label>`).join('')}
+        </fieldset>
+        ${freq.map(([k], i) => `<fieldset class="tiers" data-tiers="${k}"${i ? ' hidden' : ''}><legend>Montant${k === 'month' ? ' par mois' : k === 'year' ? ' par an' : ''}</legend>${tiers(k)}
+          <label class="tier other"><input type="radio" name="amount-${k}" value="other"><span>Autre</span></label>
+          <label class="other-amount" hidden><span>Montant en dollars</span><input type="number" min="1" step="1" inputmode="numeric" name="other-${k}"></label></fieldset>`).join('')}
+        <fieldset class="methods"><legend>Payer avec</legend>
+          ${methods.map(([k, l], i) => `<label><input type="radio" name="method" value="${k}"${i === 0 ? ' checked' : ''}><span>${l}</span></label>`).join('')}
+        </fieldset>
+        <button type="submit" class="donate big">Donner <span data-summary></span></button>
+        <p class="form-note" data-note${configured.length ? ' hidden' : ''}>${configured.length ? '' : `Le paiement en ligne sera activé dès que les comptes de paiement de la rédaction seront reliés au site. En attendant, écrivez à <a href="mailto:${esc(config.email)}">${esc(config.email)}</a> pour faire un don.`}</p>
+      </form>
+      <div class="support-why">
+        <h2>Où va votre argent</h2>
+        <ul class="lines">
+          <li>Des journalistes sur le terrain, en Haïti, pour vérifier les faits avant de publier.</li>
+          <li>Des articles gratuits pour tout le monde, sans mur payant.</li>
+          <li>Ayiti an Avan TV : journaux, débats et émissions en kreyòl.</li>
+        </ul>
+        ${(d.otherWays || []).length ? `<h2>Autres façons de donner</h2><ul class="lines">${d.otherWays.map(w => `<li>${esc(w)}</li>`).join('')}</ul>` : ''}
+        <p class="small">Une question sur un don ? Écrivez à <span class="sel">${esc(config.email)}</span>.</p>
+      </div>
+    </div>
+  </div>`;
+  await page('/soutenir/', { title: 'Soutenir Ayiti an Avan', description: "Faites un don pour soutenir une information haïtienne indépendante.", body, bodyClass: 'is-support' });
 }
 
 /* ======================================================
@@ -497,6 +608,7 @@ await buildHome();
 await buildArticles();
 await buildListings();
 await buildPages();
+await buildSupport();
 await buildVideoPages();
 await buildMeta();
 console.log(`Built ${written} files in ${((Date.now() - t0) / 1000).toFixed(1)}s → dist/ (base ${BASE}${PREVIEW ? ', preview' : ''})`);

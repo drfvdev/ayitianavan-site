@@ -20,13 +20,26 @@ The site should read like a daily newspaper, not like a generated template. Thes
 All colours are tokens at the top of `src/styles.css`.
 
 - Ink is a navy-tinted black, never pure black.
-- The logo's red marks only what is current: the section you are in, and a live broadcast. Nothing else is red.
+- The logo's red marks what is current (the section you are in, a live broadcast, breaking news) and the one thing we ask of readers: the Donate button. Nothing else is red.
 - The TV section is the one dark surface, because it is a screen.
 
 ## Structure
 
 - Rules, not boxes: a double rule under the masthead, a heavy rule over each section, hairlines between stories. No cards with shadows or rounded corners.
 - Each homepage section uses a different composition (big story with a column of headlines, three columns, a row of three, headline briefs). Never the same card grid repeated.
+
+## Header
+
+- The big masthead (date, logo, search, menu, Donate) scrolls away. The section bar stays pinned at the top and gains a small logo and the Donate button once the masthead is gone.
+- On phones, a slim bar with the logo, Donate, search and menu stays pinned (like the NBC News app); the section strip hides while scrolling.
+
+## Reader revenue (ideas taken from Newspack sites)
+
+- Donate button in the header, the menu and the footer.
+- A support box inside articles, after the fourth paragraph, ruled top and bottom, never a coloured card.
+- A bar at the bottom of the screen from the third page a reader opens; "Plus tard" hides it for seven days.
+- The donation page works like Newspack's donate block: frequency (once, monthly, yearly), amounts, payment method.
+- Never fake a payment confirmation. Until a payment link is set in `src/config.json`, the form says so and gives the e-mail address.
 
 ## Never
 

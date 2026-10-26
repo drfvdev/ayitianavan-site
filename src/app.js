@@ -18,17 +18,85 @@
     el.textContent = diff < 60 ? 'Il y a ' + Math.max(1, Math.round(diff)) + ' min' : 'Il y a ' + Math.round(diff / 60) + ' h';
   });
 
-  // Full menu
-  var menuBtn = document.querySelector('[data-menu]');
-  var drawer = document.getElementById('drawer');
-  if (menuBtn && drawer) {
-    menuBtn.addEventListener('click', function () {
-      var open = drawer.hidden;
-      drawer.hidden = !open;
-      menuBtn.setAttribute('aria-expanded', String(open));
-      if (open) { var i = drawer.querySelector('input'); if (i) i.focus(); }
+
+  // Sticky header: show the small logo and Donate button once the big masthead has scrolled away
+  var sentinel = document.querySelector('.stick-sentinel');
+  if (sentinel && 'IntersectionObserver' in window) {
+    new IntersectionObserver(function (es) {
+      document.body.classList.toggle('stuck', !es[0].isIntersecting);
+    }).observe(sentinel);
+  }
+
+  // Donation bar at the bottom of the screen: after a few pages, until closed (then hidden for 7 days)
+  var banner = document.querySelector('[data-banner]');
+  if (banner) {
+    var store = { get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+    var views = (+store.get('aa-views') || 0) + 1;
+    store.set('aa-views', views);
+    var closedAt = +store.get('aa-banner-closed') || 0;
+    if (views > +banner.getAttribute('data-after') && Date.now() - closedAt > 7 * 864e5) {
+      banner.hidden = false;
+      document.body.style.paddingBottom = banner.offsetHeight + 'px';
+    }
+    banner.querySelector('[data-banner-close]').addEventListener('click', function () {
+      banner.hidden = true;
+      document.body.style.paddingBottom = '';
+      store.set('aa-banner-closed', Date.now());
     });
   }
+
+  // Donate form: frequency switches the amounts; submit goes to the configured payment page
+  var form = document.querySelector('[data-donate]');
+  if (form) {
+    var links = {}; try { links = JSON.parse(form.getAttribute('data-links')) || {}; } catch (e) {}
+    var cur = form.getAttribute('data-currency') === 'USD' ? '$' : '';
+    var freqLabel = { once: '', month: ' par mois', year: ' par an' };
+    var current = function () {
+      var f = form.querySelector('input[name=freq]:checked').value;
+      var sel = form.querySelector('input[name=amount-' + f + ']:checked');
+      var amount = sel ? sel.value : '';
+      if (amount === 'other') amount = (form.querySelector('input[name=other-' + f + ']').value || '').trim();
+      return { freq: f, amount: amount, method: form.querySelector('input[name=method]:checked').value };
+    };
+    var update = function () {
+      var c = current();
+      form.querySelectorAll('[data-tiers]').forEach(function (t) { t.hidden = t.getAttribute('data-tiers') !== c.freq; });
+      form.querySelectorAll('.other-amount').forEach(function (o) {
+        var t = o.closest('[data-tiers]');
+        var other = t.querySelector('input[value=other]');
+        o.hidden = !(other && other.checked);
+      });
+      form.querySelector('[data-summary]').textContent = c.amount ? cur + c.amount + freqLabel[c.freq] : '';
+    };
+    form.addEventListener('change', update);
+    form.addEventListener('input', update);
+    update();
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var c = current();
+      var note = form.querySelector('[data-note]');
+      if (!c.amount || !(+c.amount > 0)) { note.hidden = false; note.textContent = 'Choisissez ou saisissez un montant.'; return; }
+      var url = links[c.method];
+      if (!url) { note.hidden = false; return; }
+      url = url.replace('{amount}', encodeURIComponent(c.amount)).replace('{freq}', c.freq);
+      window.location.href = url;
+    });
+  }
+
+  // Full menu
+  var drawer = document.getElementById('drawer');
+  var menuBtns = document.querySelectorAll('[data-menu]');
+  menuBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var open = drawer.hidden;
+      drawer.hidden = !open;
+      menuBtns.forEach(function (b) { b.setAttribute('aria-expanded', String(open)); });
+      if (open) {
+        if (btn.closest('.mast-big')) drawer.scrollIntoView({ block: 'start' });
+        var i = drawer.querySelector('input'); if (i) i.focus({ preventScroll: true });
+      }
+    });
+  });
 
   // Copy link
   document.addEventListener('click', function (e) {

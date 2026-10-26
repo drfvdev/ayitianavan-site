@@ -14,25 +14,145 @@
     "whatsapp": "https://whatsapp.com/channel/0029VaBKsKLFCCoNEOp84C2f"
   },
   "nav": [
-    { "label": "Politique", "category": "politique" },
-    { "label": "Sécurité", "category": "securite", "also": ["insecurite", "insecurite-incendie-industriel"] },
-    { "label": "Société", "category": "societe", "also": ["securite-societe", "environnement"] },
-    { "label": "Justice", "category": "justice" },
-    { "label": "Diplomatie", "category": "diplomatie" },
-    { "label": "International", "category": "international" },
-    { "label": "Économie", "category": "economie", "also": ["agriculture"] },
-    { "label": "Éducation", "category": "education" },
-    { "label": "Santé", "category": "sante" },
-    { "label": "Culture", "category": "culture" },
-    { "label": "Sport", "category": "sport" },
-    { "label": "Diaspora", "category": "diaspora" }
+    {
+      "label": "Politique",
+      "category": "politique"
+    },
+    {
+      "label": "Sécurité",
+      "category": "securite",
+      "also": [
+        "insecurite",
+        "insecurite-incendie-industriel"
+      ]
+    },
+    {
+      "label": "Société",
+      "category": "societe",
+      "also": [
+        "securite-societe",
+        "environnement"
+      ]
+    },
+    {
+      "label": "Justice",
+      "category": "justice"
+    },
+    {
+      "label": "Diplomatie",
+      "category": "diplomatie"
+    },
+    {
+      "label": "International",
+      "category": "international"
+    },
+    {
+      "label": "Économie",
+      "category": "economie",
+      "also": [
+        "agriculture"
+      ]
+    },
+    {
+      "label": "Éducation",
+      "category": "education"
+    },
+    {
+      "label": "Santé",
+      "category": "sante"
+    },
+    {
+      "label": "Culture",
+      "category": "culture"
+    },
+    {
+      "label": "Sport",
+      "category": "sport"
+    },
+    {
+      "label": "Diaspora",
+      "category": "diaspora"
+    }
   ],
   "homeSections": {
-    "trio": ["securite", "politique", "justice"],
+    "trio": [
+      "securite",
+      "politique",
+      "justice"
+    ],
     "feature": "diaspora",
-    "rows": ["international", "sport", "education"],
-    "trio2": ["societe", "economie", "culture"]
+    "rows": [
+      "international",
+      "sport",
+      "education"
+    ],
+    "trio2": [
+      "societe",
+      "economie",
+      "culture"
+    ]
   },
-  "pages": ["qui-sommes-nous", "mentions-legales", "conditions-generales-dutilisation", "politique-de-confidentialite"],
-  "listingAliases": ["actualites", "latest-news", "news"]
+  "pages": [
+    "qui-sommes-nous",
+    "mentions-legales",
+    "conditions-generales-dutilisation",
+    "politique-de-confidentialite"
+  ],
+  "listingAliases": [
+    "actualites",
+    "latest-news",
+    "news"
+  ],
+  "donate": {
+    "label": "Faire un don",
+    "currency": "USD",
+    "amounts": {
+      "once": [
+        10,
+        25,
+        50,
+        100
+      ],
+      "month": [
+        5,
+        10,
+        20,
+        50
+      ],
+      "year": [
+        50,
+        100,
+        250,
+        500
+      ]
+    },
+    "default": {
+      "once": 25,
+      "month": 10,
+      "year": 100
+    },
+    "links": {
+      "card": "",
+      "paypal": "",
+      "moncash": ""
+    },
+    "otherWays": [],
+    "bannerAfterViews": 2
+  },
+  "breaking": {
+    "text": "",
+    "url": ""
+  },
+  "tips": {
+    "email": "kontak@ayitianavan.com",
+    "whatsapp": ""
+  },
+  "packages": [
+    {
+      "slug": "elections",
+      "title": "Élections 2026",
+      "intro": "Inscription des électeurs, calendrier, CEP : tout notre suivi du processus électoral.",
+      "match": "élect|électora|électeur|\\bCEP\\b|scrutin"
+    }
+  ]
 }

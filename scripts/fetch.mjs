@@ -125,7 +125,7 @@ async function main() {
     path: wpPath(c.link), description: stripTags(decode(c.description || '')),
   }));
   const tags = rawTags.map(t => ({ id: t.id, name: decode(t.name), slug: t.slug, count: t.count, path: wpPath(t.link) }));
-  const authors = rawUsers.map(u => ({ id: u.id, name: safeAuthor(u.name), slug: u.slug, path: wpPath(u.link) }));
+  const authors = rawUsers.map(u => ({ id: u.id, name: safeAuthor(u.name), slug: u.slug, path: wpPath(u.link), bio: stripTags(decode(u.description || '')).trim() }));
 
   const posts = rawPosts.map(p => {
     const emb = p._embedded || {};
