@@ -50,8 +50,13 @@ export function meta(ctx, p, { section = true, author = false } = {}) {
 }
 
 // Story with picture above the headline
+export function label(ctx, p) {
+  const c = ctx.primaryCat(p);
+  return c ? `<span class="label">${esc(c.name)}</span>` : '';
+}
+
 export function story(ctx, p, { sizes = '(max-width:700px) 100vw, 33vw', standfirst = false, eager = false, cls = '' } = {}) {
-  return `<article class="story ${cls}"><a href="${ctx.u(p.path)}">${img(p.image, { sizes, eager })}<h3 class="hl">${esc(p.title)}</h3></a>${standfirst && p.excerpt ? `<p class="sf">${esc(trim(p.excerpt, 170))}</p>` : ''}${meta(ctx, p)}</article>`;
+  return `<article class="story ${cls}"><a href="${ctx.u(p.path)}">${img(p.image, { sizes, eager })}${label(ctx, p)}<h3 class="hl">${esc(p.title)}</h3></a>${standfirst && p.excerpt ? `<p class="sf">${esc(trim(p.excerpt, 170))}</p>` : ''}${meta(ctx, p, { section: false })}</article>`;
 }
 
 // Headline only
@@ -61,7 +66,7 @@ export function line(ctx, p, { section = true } = {}) {
 
 // Listing row: picture left, text right
 export function row(ctx, p) {
-  return `<article class="row"><a href="${ctx.u(p.path)}">${img(p.image, { sizes: '(max-width:700px) 32vw, 240px' })}<div><h3 class="hl">${esc(p.title)}</h3><p class="sf">${esc(trim(p.excerpt, 200))}</p>${meta(ctx, p, { author: true })}</div></a></article>`;
+  return `<article class="row"><a href="${ctx.u(p.path)}">${img(p.image, { sizes: '(max-width:700px) 32vw, 240px' })}<div>${label(ctx, p)}<h3 class="hl">${esc(p.title)}</h3><p class="sf">${esc(trim(p.excerpt, 200))}</p>${meta(ctx, p, { section: false, author: true })}</div></a></article>`;
 }
 
 export function trim(s = '', n = 160) {
@@ -160,15 +165,30 @@ ${extraHead}
 <body class="${bodyClass}">
 <a class="skip" href="#contenu">Aller au contenu</a>
 ${preview ? `<p class="preview-bar">Version de test du nouveau site. Le site officiel reste <a href="${esc(ctx.wpSource)}">${esc(ctx.wpSource.replace(/^https?:\/\//, ''))}</a>.</p>` : ''}
+<div class="topbar">
+  <div class="wrap">
+    <p class="dateline" data-today>${esc(weekday(buildDate))}</p>
+    <nav class="top-links" aria-label="Liens rapides">
+      <a href="${u('/direct/')}">${config.liveTv ? '<span class="live">En direct</span>' : 'Ayiti an Avan TV'}</a>
+      <a href="${u('/shorts/')}">Shorts</a>
+      <a href="${s.whatsapp}" rel="noopener">Chaîne WhatsApp</a>
+      <span class="soc">
+        <a href="${s.facebook}" aria-label="Facebook" rel="noopener">${icon.facebook}</a>
+        <a href="${s.x}" aria-label="X" rel="noopener">${icon.x}</a>
+        <a href="${s.youtube}" aria-label="YouTube" rel="noopener">${icon.youtube}</a>
+        <a href="${s.telegram}" aria-label="Telegram" rel="noopener">${icon.telegram}</a>
+      </span>
+    </nav>
+  </div>
+</div>
 <div class="mast-big">
   <div class="wrap mast">
-    <p class="dateline" data-today>${esc(weekday(buildDate))}</p>
-    <a class="logo" href="${u('/')}"><img src="${u('/logo.png')}" alt="${esc(config.name)}" width="485" height="236"></a>
-    <div class="tools">
-      <a class="tool" href="${u('/recherche/')}">${icon.search}<span>Rechercher</span></a>
+    <div class="tools left">
       <button class="tool" data-menu aria-expanded="false" aria-controls="drawer">${icon.menu}<span>Rubriques</span></button>
-      ${donateButton(ctx)}
+      <a class="tool" href="${u('/recherche/')}">${icon.search}<span>Rechercher</span></a>
     </div>
+    <a class="logo" href="${u('/')}"><img src="${u('/logo.png')}" alt="${esc(config.name)}" width="485" height="236"></a>
+    <div class="tools">${donateButton(ctx)}</div>
   </div>
 </div>
 <span class="stick-sentinel" aria-hidden="true"></span>
@@ -182,14 +202,15 @@ ${preview ? `<p class="preview-bar">Version de test du nouveau site. Le site off
     </div>
   </div>
   <nav class="sections" aria-label="Rubriques">
-    <div class="wrap"><ul>
-      <li class="mini"><a class="mini-logo" href="${u('/')}" tabindex="-1"><img src="${u('/logo.png')}" alt="" width="485" height="236"></a></li>
-      <li><a href="${u('/')}"${on('/')}>À la une</a></li>
-      ${ctx.nav.map(n => `<li><a href="${u(n.path)}"${on(n.path)}>${esc(n.label)}</a></li>`).join('')}
-      <li class="push"><a href="${u('/direct/')}"${on('/direct/')}>${config.liveTv ? '<span class="live">En direct</span>' : 'TV'}</a></li>
-      <li><a href="${u('/shorts/')}"${on('/shorts/')}>Shorts</a></li>
-      <li class="mini">${donateButton(ctx, { tabindex: -1 })}</li>
-    </ul></div>
+    <div class="wrap nav-row">
+      <a class="mini-logo" href="${u('/')}" tabindex="-1" aria-hidden="true"><img src="${u('/logo.png')}" alt="" width="485" height="236"></a>
+      <ul>
+        <li><a href="${u('/')}"${on('/')}>À la une</a></li>
+        ${ctx.nav.map(n => `<li><a href="${u(n.path)}"${on(n.path)}>${esc(n.label)}</a></li>`).join('')}
+        <li><a href="${u('/direct/')}"${on('/direct/')}>TV</a></li>
+      </ul>
+      <span class="mini-donate">${donateButton(ctx, { tabindex: -1 })}</span>
+    </div>
   </nav>
   <div class="drawer" id="drawer" hidden>
     <div class="wrap">
@@ -202,6 +223,7 @@ ${preview ? `<p class="preview-bar">Version de test du nouveau site. Le site off
     </div>
   </div>
 </header>
+${ctx.topics && ctx.topics.length ? `<nav class="topics" aria-label="À suivre"><div class="wrap"><span class="topics-label">À suivre</span>${ctx.topics.map(t => `<a href="${u(t.path)}"${current === t.path ? ' aria-current="page"' : ''}>${esc(t.title)}</a>`).join('')}</div></nav>` : ''}
 ${breakingBar(ctx)}
 <main id="contenu">
 ${body}

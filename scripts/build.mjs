@@ -96,7 +96,9 @@ const css = await fs.readFile(path.join(SRC, 'styles.css'), 'utf8');
 const js = await fs.readFile(path.join(SRC, 'app.js'), 'utf8');
 const assets = { css: u(`/assets/site.css?v=${hash(css)}`), js: u(`/assets/app.js?v=${hash(js)}`) };
 
-const ctx = { config, videos, u, abs, assets, preview: PREVIEW, buildDate, nav, drawer, footerPages, primaryCat, wpSource: wp.source, breaking };
+const ctx = { config, videos, u, abs, assets, preview: PREVIEW, buildDate, nav, drawer, footerPages, primaryCat, wpSource: wp.source, breaking, topics: [] };
+
+ctx.topics = packages.map(pk => ({ title: pk.title, path: pk.path }));
 
 /* ---------- output helpers ---------- */
 let written = 0;
@@ -209,8 +211,9 @@ async function buildHome() {
     return outList;
   };
   const [lead] = take(posts, 1, true);
-  const seconds = take(posts, 2, true);
-  const wire = posts.filter(p => p.id !== lead.id).slice(0, 8);
+  const middle = take(posts, 3, true);
+  const seconds = take(posts, 3, true);
+  const wire = posts.filter(p => p.id !== lead.id && !middle.includes(p)).slice(0, 7);
 
   const today = T.dayKey(buildDate);
   let lastDay = null;
@@ -232,7 +235,7 @@ async function buildHome() {
     return `<section class="band spread${flip ? ' flip' : ''}" aria-labelledby="s-${slug}"><div class="wrap">
       ${T.sechead(ctx, n.label, n.path).replace('<h2>', `<h2 id="s-${slug}">`)}
       <div class="spread-grid">
-        <article class="story big"><a href="${u(main.path)}">${T.img(main.image, { sizes: '(max-width:820px) 100vw, 58vw' })}<h3 class="hl">${esc(main.title)}</h3></a><p class="sf">${esc(T.trim(main.excerpt, 240))}</p>${T.meta(ctx, main, { section: false, author: true })}</article>
+        <article class="story big"><a href="${u(main.path)}">${T.img(main.image, { sizes: '(max-width:820px) 100vw, 58vw' })}${T.label(ctx, main)}<h3 class="hl">${esc(main.title)}</h3></a><p class="sf">${esc(T.trim(main.excerpt, 240))}</p>${T.meta(ctx, main, { section: false, author: true })}</article>
         <ul class="lines">${rest.map(p => T.line(ctx, p, { section: false })).join('')}</ul>
       </div>
     </div></section>`;
@@ -246,7 +249,7 @@ async function buildHome() {
       const rest = take(sectionPosts(slug), 2);
       if (!first) return '';
       return `<section aria-labelledby="s-${slug}">${T.sechead(ctx, n.label, n.path, '').replace('<h2>', `<h2 id="s-${slug}">`)}
-        <article class="story"><a href="${u(first.path)}">${T.img(first.image, { sizes: '(max-width:820px) 100vw, 30vw' })}<h3 class="hl">${esc(first.title)}</h3></a>${T.meta(ctx, first, { section: false })}</article>
+        <article class="story"><a href="${u(first.path)}">${T.img(first.image, { sizes: '(max-width:820px) 100vw, 30vw' })}${T.label(ctx, first)}<h3 class="hl">${esc(first.title)}</h3></a>${T.meta(ctx, first, { section: false })}</article>
         <ul class="lines">${rest.map(p => T.line(ctx, p, { section: false })).join('')}</ul></section>`;
     }).join('');
     return `<div class="band"><div class="wrap columns">${cols}</div></div>`;
@@ -292,7 +295,7 @@ async function buildHome() {
       ${T.sechead(ctx, pkg.title, pkg.path, 'Tout le dossier').replace('<h2>', '<h2 id="s-pkg">')}
       <p class="pkg-intro">${esc(pkg.intro)}</p>
       <div class="spread-grid">
-        <article class="story big"><a href="${u(main.path)}">${T.img(main.image, { sizes: '(max-width:820px) 100vw, 58vw' })}<h3 class="hl">${esc(main.title)}</h3></a><p class="sf">${esc(T.trim(main.excerpt, 220))}</p>${T.meta(ctx, main)}</article>
+        <article class="story big"><a href="${u(main.path)}">${T.img(main.image, { sizes: '(max-width:820px) 100vw, 58vw' })}${T.label(ctx, main)}<h3 class="hl">${esc(main.title)}</h3></a><p class="sf">${esc(T.trim(main.excerpt, 220))}</p>${T.meta(ctx, main)}</article>
         <ul class="lines">${rest.map(p => T.line(ctx, p)).join('')}</ul>
       </div>
     </div></section>`;
@@ -310,18 +313,24 @@ async function buildHome() {
   ${liveBand}
   <div class="wrap front">
     <article class="lead">
-      <a href="${u(lead.path)}">${T.img(lead.image, { eager: true, sizes: '(max-width:820px) 100vw, 64vw' })}<h1 class="hl">${esc(lead.title)}</h1></a>
-      <p class="sf">${esc(T.trim(lead.excerpt, 240))}</p>
-      ${T.meta(ctx, lead, { author: true })}
+      <a href="${u(lead.path)}">${T.img(lead.image, { eager: true, sizes: '(max-width:820px) 100vw, 50vw' })}${T.label(ctx, lead)}<h1 class="hl">${esc(lead.title)}</h1></a>
+      <p class="sf">${esc(T.trim(lead.excerpt, 200))}</p>
+      ${T.meta(ctx, lead, { section: false, author: true })}
     </article>
-    <aside class="wire" aria-labelledby="h-wire">
-      <h2 id="h-wire"><a href="${u('/actualites/')}">En continu</a></h2>
-      <ul>${wireHtml}</ul>
-      <a class="more" href="${u('/actualites/')}">Toute l’actualité</a>
-      ${onThisDay.length ? `<section class="otd" aria-labelledby="h-otd"><h2 id="h-otd">Ce jour-là</h2><ul>${onThisDay.map(p => `<li><time datetime="${p.date}">${esc(T.dateLong(p.date))}</time><a href="${u(p.path)}" class="hl">${esc(p.title)}</a></li>`).join('')}</ul></section>` : ''}
+    <div class="middle">${middle.map((p, i) => i === 0
+      ? T.story(ctx, p, { sizes: '(max-width:820px) 100vw, 25vw' })
+      : `<article class="story compact"><a href="${u(p.path)}">${T.label(ctx, p)}<h3 class="hl">${esc(p.title)}</h3></a>${T.meta(ctx, p, { section: false })}</article>`).join('')}</div>
+    <aside class="rail">
+      ${vids.length ? `<section class="rail-tv" aria-labelledby="h-railtv"><h2 id="h-railtv" class="railhead"><a href="${u('/direct/')}">${config.liveTv ? '<span class="live">En direct</span> ' : ''}Ayiti an Avan TV</a></h2>${T.player(ctx)}</section>` : ''}
+      <section class="wire" aria-labelledby="h-wire">
+        <h2 id="h-wire" class="railhead"><a href="${u('/actualites/')}">En continu</a></h2>
+        <ul>${wireHtml}</ul>
+        <a class="more" href="${u('/actualites/')}">Toute l’actualité</a>
+      </section>
+      ${onThisDay.length ? `<section class="otd" aria-labelledby="h-otd"><h2 id="h-otd" class="railhead">Ce jour-là</h2><ul>${onThisDay.map(p => `<li><time datetime="${p.date}">${esc(T.dateLong(p.date))}</time><a href="${u(p.path)}" class="hl">${esc(p.title)}</a></li>`).join('')}</ul></section>` : ''}
     </aside>
-    <div class="seconds">${seconds.map(p => T.story(ctx, p, { standfirst: true, sizes: '(max-width:820px) 100vw, 30vw' })).join('')}</div>
   </div>
+  <div class="wrap seconds-row"><div class="seconds">${seconds.map(p => T.story(ctx, p, { standfirst: true, sizes: '(max-width:820px) 100vw, 30vw' })).join('')}</div></div>
 
   ${spread(hs.trio[0])}
   ${packageBand}
@@ -433,7 +442,7 @@ async function listing(basePath, { title, intro = '', list, current, description
     const count = `${list.length} ${countLabel || (list.length > 1 ? 'articles' : 'article')}${n > 1 ? `, page ${n} sur ${pages}` : ''}`;
     const body = `<div class="wrap listing">
       <header class="listhead"><h1>${esc(title)}</h1>${intro ? `<p class="intro">${esc(intro)}</p>` : ''}<p class="count">${count}</p></header>
-      ${top ? `<article class="listing-top"><a href="${u(top.path)}" tabindex="-1" aria-hidden="true">${T.img(top.image, { eager: true, sizes: '(max-width:820px) 100vw, 60vw' })}</a><div><h2><a class="hl" href="${u(top.path)}">${esc(top.title)}</a></h2><p class="sf">${esc(T.trim(top.excerpt, 260))}</p>${T.meta(ctx, top, { author: true })}</div></article>` : ''}
+      ${top ? `<article class="listing-top"><a href="${u(top.path)}" tabindex="-1" aria-hidden="true">${T.img(top.image, { eager: true, sizes: '(max-width:820px) 100vw, 60vw' })}</a><div>${T.label(ctx, top)}<h2><a class="hl" href="${u(top.path)}">${esc(top.title)}</a></h2><p class="sf">${esc(T.trim(top.excerpt, 260))}</p>${T.meta(ctx, top, { author: true })}</div></article>` : ''}
       <div class="rows">${rest.map(p => T.row(ctx, p)).join('')}</div>
       ${list.length ? '' : '<p class="empty">Aucun article pour le moment.</p>'}
       ${T.pager(ctx, basePath, n, pages)}

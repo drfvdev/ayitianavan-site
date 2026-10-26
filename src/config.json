@@ -166,6 +166,24 @@
       "title": "Élections 2026",
       "intro": "Inscription des électeurs, calendrier, CEP : tout notre suivi du processus électoral.",
       "match": "élect|électora|électeur|\\bCEP\\b|scrutin"
+    },
+    {
+      "slug": "cpt",
+      "title": "CPT",
+      "intro": "Le Conseil présidentiel de transition : décisions, tensions et fin de mandat.",
+      "match": "\\bCPT\\b|Conseil présidentiel"
+    },
+    {
+      "slug": "tps",
+      "title": "Fin du TPS",
+      "intro": "Ce que la fin du statut de protection temporaire change pour les Haïtiens des États-Unis.",
+      "match": "\\bTPS\\b"
+    },
+    {
+      "slug": "grenadiers",
+      "title": "Grenadiers",
+      "intro": "L'équipe nationale de football d'Haïti, en route pour la Coupe du monde 2026.",
+      "match": "Grenadier"
     }
   ]
 }
