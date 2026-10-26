@@ -18,10 +18,6 @@
     el.textContent = diff < 60 ? 'Il y a ' + Math.max(1, Math.round(diff)) + ' min' : 'Il y a ' + Math.round(diff / 60) + ' h';
   });
 
-  // Ticker: duplicate the items so the loop is seamless
-  var track = document.querySelector('.ticker-track');
-  if (track) track.innerHTML += track.innerHTML.replace(/<a /g, '<a tabindex="-1" aria-hidden="true" ');
-
   // Full menu
   var menuBtn = document.querySelector('[data-menu]');
   var drawer = document.getElementById('drawer');
@@ -69,16 +65,15 @@
     viewer.setAttribute('role', 'dialog');
     viewer.setAttribute('aria-modal', 'true');
     viewer.setAttribute('aria-label', 'Lecteur de shorts');
-    viewer.innerHTML = '<button class="vclose" aria-label="Fermer"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>' +
-      '<div class="vstage"><div class="vfeed"></div><div class="vnav"><button data-step="-1" aria-label="Précédent"><svg viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></svg></button><button data-step="1" aria-label="Suivant"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button></div></div>';
+    viewer.innerHTML = '<button class="vclose">Fermer</button>' +
+      '<div class="vstage"><div class="vfeed"></div><div class="vnav"><button data-step="-1" aria-label="Vidéo précédente">Préc.</button><button data-step="1" aria-label="Vidéo suivante">Suiv.</button></div></div>';
     document.body.appendChild(viewer);
     feed = viewer.querySelector('.vfeed');
     feed.innerHTML = shorts.map(function (s, i) {
       return '<section class="vitem' + (s.s ? ' is-short' : '') + '" data-i="' + i + '" data-id="' + s.id + '">' +
         '<img src="' + ytThumb(s.id) + '" alt="">' +
         '<div class="frame"><img src="' + ytThumb(s.id) + '" alt=""><button class="play" aria-label="Lire"><svg viewBox="0 0 24 24"><path d="M6 4l15 8-15 8z"/></svg></button></div>' +
-        '<div class="vhead"><span class="wordmark"><span class="a">AYITI</span><span class="b">an avan</span></span><span>· Shorts</span></div>' +
-        '<div class="vinfo"><h3>' + esc(s.t) + '</h3><a href="https://www.youtube.com/' + (s.s ? 'shorts/' : 'watch?v=') + s.id + '" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M6 4l15 8-15 8z"/></svg>Voir sur YouTube</a></div>' +
+        '<div class="vinfo"><h3>' + esc(s.t) + '</h3><a href="https://www.youtube.com/' + (s.s ? 'shorts/' : 'watch?v=') + s.id + '" target="_blank" rel="noopener">Voir sur YouTube</a></div>' +
         '</section>';
     }).join('');
     items = Array.prototype.slice.call(feed.querySelectorAll('.vitem'));
