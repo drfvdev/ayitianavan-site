@@ -327,10 +327,10 @@ async function buildArticles() {
     const body = `
     <div class="wrap article">
       <article data-pagefind-body>
-        <div class="crumbs"><a href="${u('/')}">Accueil</a>${crumbs.map(c => `<span aria-hidden="true">›</span>${c}`).join('')}</div>
+        <div class="crumbs" data-pagefind-ignore><a href="${u('/')}">Accueil</a>${crumbs.map(c => `<span aria-hidden="true">›</span>${c}`).join('')}</div>
         <h1 data-pagefind-meta="title">${esc(p.title)}</h1>
         ${showChapo(p, html) ? `<p class="chapo">${esc(T.trim(p.excerpt, 300))}</p>` : ''}
-        <div class="byline">
+        <div class="byline" data-pagefind-ignore>
           <div class="who"><span class="avatar" aria-hidden="true">${esc(p.author.name.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase())}</span><span><b>${p.author.slug ? `<a href="${u('/author/' + p.author.slug + '/')}">${esc(p.author.name)}</a>` : esc(p.author.name)}</b><span class="meta">Publié le ${T.dateTimeLong(p.date)}${p.modified.slice(0, 10) !== p.date.slice(0, 10) ? ` · Mis à jour le ${T.dateLong(p.modified)}` : ''} · Lecture ${readingTime(p.content)} min</span></span></div>
           <div class="share" aria-label="Partager">
             <a href="https://www.facebook.com/sharer/sharer.php?u=${share}" target="_blank" rel="noopener" aria-label="Partager sur Facebook">${T.icon.facebook}</a>
@@ -342,8 +342,8 @@ async function buildArticles() {
         </div>
         ${p.image ? `<figure class="hero">${T.img(p.image, { eager: true, sizes: '(max-width:820px) 100vw, 800px' })}${capText ? `<figcaption>${esc(capText)}</figcaption>` : ''}</figure>` : ''}
         <div class="prose">${html}</div>
-        ${tags.length ? `<div class="tags">${tags.map(t => `<a href="${u(t.path)}">${esc(t.name)}</a>`).join('')}</div>` : ''}
-        <div class="follow-inline">Suivez ${esc(config.name)} sur <a href="${config.social.whatsapp}" rel="noopener">WhatsApp</a>, <a href="${config.social.telegram}" rel="noopener">Telegram</a> et <a href="${config.social.youtube}" rel="noopener">YouTube</a>.</div>
+        ${tags.length ? `<div class="tags" data-pagefind-ignore>${tags.map(t => `<a href="${u(t.path)}">${esc(t.name)}</a>`).join('')}</div>` : ''}
+        <div class="follow-inline" data-pagefind-ignore>Suivez ${esc(config.name)} sur <a href="${config.social.whatsapp}" rel="noopener">WhatsApp</a>, <a href="${config.social.telegram}" rel="noopener">Telegram</a> et <a href="${config.social.youtube}" rel="noopener">YouTube</a>.</div>
       </article>
       <aside>
         <div class="aside-sticky">
