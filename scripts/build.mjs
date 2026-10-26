@@ -215,7 +215,7 @@ async function buildHome() {
   const seconds = take(posts, 3, true);
   const leadRelated = posts.filter(p => p.id !== lead.id && !used.has(p.id) && p.categories.some(c => lead.categories.includes(c))).slice(0, 3);
   leadRelated.forEach(p => used.add(p.id));
-  const wire = posts.filter(p => p.id !== lead.id && !middle.includes(p) && !leadRelated.includes(p)).slice(0, 6);
+  const wire = posts.filter(p => p.id !== lead.id && !middle.includes(p) && !leadRelated.includes(p)).slice(0, 5);
 
   const today = T.dayKey(buildDate);
   let lastDay = null;
@@ -322,7 +322,9 @@ async function buildHome() {
     </article>
     <div class="middle">${middle.map((p, i) => i === 0
       ? T.story(ctx, p, { sizes: '(max-width:820px) 100vw, 25vw' })
-      : `<article class="story compact"><a href="${u(p.path)}">${T.label(ctx, p)}<h3 class="hl">${esc(p.title)}</h3></a>${T.meta(ctx, p, { section: false })}</article>`).join('')}</div>
+      : `<article class="story compact"><a href="${u(p.path)}">${T.label(ctx, p)}<h3 class="hl">${esc(p.title)}</h3></a>${T.meta(ctx, p, { section: false })}</article>`).join('')}
+      ${onThisDay.length ? `<section class="otd" aria-labelledby="h-otd"><h2 id="h-otd" class="railhead">Ce jour-là</h2><ul>${onThisDay.map(p => `<li><time datetime="${p.date}">${esc(T.dateLong(p.date))}</time><a href="${u(p.path)}" class="hl">${esc(p.title)}</a></li>`).join('')}</ul></section>` : ''}
+    </div>
     <aside class="siderail">
       ${vids.length ? `<section class="rail-tv" aria-labelledby="h-railtv"><h2 id="h-railtv" class="railhead"><a href="${u('/direct/')}">${config.liveTv ? '<span class="live">En direct</span> ' : ''}Ayiti an Avan TV</a></h2>${T.player(ctx)}</section>` : ''}
       <section class="wire" aria-labelledby="h-wire">
@@ -330,7 +332,6 @@ async function buildHome() {
         <ul>${wireHtml}</ul>
         <a class="more" href="${u('/actualites/')}">Toute l’actualité</a>
       </section>
-      ${onThisDay.length ? `<section class="otd" aria-labelledby="h-otd"><h2 id="h-otd" class="railhead">Ce jour-là</h2><ul>${onThisDay.map(p => `<li><time datetime="${p.date}">${esc(T.dateLong(p.date))}</time><a href="${u(p.path)}" class="hl">${esc(p.title)}</a></li>`).join('')}</ul></section>` : ''}
     </aside>
   </div>
   <div class="wrap seconds-row"><div class="seconds">${seconds.map(p => T.story(ctx, p, { standfirst: true, sizes: '(max-width:820px) 100vw, 30vw' })).join('')}</div></div>

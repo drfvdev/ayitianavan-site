@@ -279,7 +279,7 @@ export function bottomBanner(ctx, path) {
   if (path === '/soutenir/') return '';
   return `<div class="bottom-banner" data-banner data-after="${Number(ctx.config.donate.bannerAfterViews) || 2}" hidden role="region" aria-label="Soutenir ${esc(ctx.config.name)}">
     <div class="wrap">
-      <p><b>L'information indépendante a un coût.</b> Un don, même petit, aide ${esc(ctx.config.name)} à rester libre.</p>
+      <p><b>L'information indépendante a un coût.</b> Un don, même petit, aide ${esc(ctx.config.name)} à rester libre.<span class="bb-short">Soutenez-nous.</span></p>
       <div class="bb-actions"><a class="donate" href="${ctx.u('/soutenir/')}">${esc(ctx.config.donate.label)}</a><button type="button" data-banner-close>Plus tard</button></div>
     </div>
   </div>`;

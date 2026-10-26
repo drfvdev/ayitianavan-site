@@ -41,9 +41,18 @@ All colours are tokens at the top of `src/styles.css`.
 - The donation page works like Newspack's donate block: frequency (once, monthly, yearly), amounts, payment method.
 - Never fake a payment confirmation. Until a payment link is set in `src/config.json`, the form says so and gives the e-mail address.
 
+## Changed after comparing with real news sites (26 October 2026)
+
+Screenshots of NBC News, CHEK News, Haitian Times, Texas Tribune, CalMatters, The City and the Colorado Sun, set beside ours, showed the first version read like a quiet print page. Where the owner's references and the design guides disagree, the references win:
+
+- Section labels above headlines are back (small, red, bold capitals), as on every reference site.
+- Section titles are bold capitals with a red bar, like NBC's and CHEK's.
+- A slim navy top bar (date, TV, Shorts, WhatsApp, social links) above the logo, like the Colorado Sun and Texas Tribune.
+- A topics strip ("À suivre") under the menu, like NBC and Haitian Times.
+- The front page has three columns, like NBC: lead story with related headlines, a column of stories, and TV above "En continu" on the right.
+
 ## Never
 
-- A label above a headline ("ÉDUCATION", "POLITIQUE"). The section name goes in the line under the headline, with the date.
 - Facts joined with dots ("A · B · C"). Use a comma, or put them on separate lines.
 - Arrows on links ("Plus →"). Name where the link goes.
 - Decorative dots, pulsing dots, scrolling tickers, numbers on lists that are not a ranking.
