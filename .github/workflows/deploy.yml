@@ -1,0 +1,54 @@
+# Rebuilds the site from WordPress and publishes it to GitHub Pages.
+# Runs every 15 minutes, on every push, and on demand (Actions tab → "Run workflow").
+name: Build and publish
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+  repository_dispatch:
+    types: [wordpress-update]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Pull articles from WordPress
+        run: npm run fetch
+      - name: Build the site
+        run: npm run build
+        env:
+          SITE_URL: ${{ vars.SITE_URL || 'https://drfvdev.github.io' }}
+          SITE_BASE: ${{ vars.SITE_BASE || '/ayitianavan-site/' }}
+          PREVIEW: ${{ vars.PREVIEW || '1' }}
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

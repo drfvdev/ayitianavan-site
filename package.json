@@ -1,0 +1,18 @@
+{
+  "name": "ayitianavan-site",
+  "private": true,
+  "type": "module",
+  "description": "New Ayiti an Avan website. Reads articles from WordPress and builds a fast static site.",
+  "scripts": {
+    "fetch": "node scripts/fetch.mjs",
+    "build": "node scripts/build.mjs && node scripts/search-index.mjs",
+    "serve": "node scripts/serve.mjs",
+    "dev": "node scripts/build.mjs && node scripts/search-index.mjs && node scripts/serve.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "pagefind": "1.5.2"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "name": "AYITI AN AVAN",
+  "tagline": "Enfòmasyon verifye, san filtè.",
+  "about": "Média indépendant et citoyen qui veut montrer une autre image d'Haïti, loin des clichés et du sensationnalisme.",
+  "email": "kontak@ayitianavan.com",
+  "youtubeChannelId": "UCZ0_vU2jIql-g4tJxMaU9DA",
+  "liveTv": false,
+  "schedule": [],
+  "social": {
+    "facebook": "https://www.facebook.com/ayitianavannews",
+    "x": "https://x.com/ayitianavannews",
+    "youtube": "https://www.youtube.com/@ayitianavannews",
+    "telegram": "https://t.me/ayitianavannews",
+    "whatsapp": "https://whatsapp.com/channel/0029VaBKsKLFCCoNEOp84C2f"
+  },
+  "nav": [
+    { "label": "Politique", "category": "politique" },
+    { "label": "Sécurité", "category": "securite", "also": ["insecurite", "insecurite-incendie-industriel"] },
+    { "label": "Société", "category": "societe", "also": ["securite-societe", "environnement"] },
+    { "label": "Justice", "category": "justice" },
+    { "label": "Diplomatie", "category": "diplomatie" },
+    { "label": "International", "category": "international" },
+    { "label": "Économie", "category": "economie", "also": ["agriculture"] },
+    { "label": "Éducation", "category": "education" },
+    { "label": "Santé", "category": "sante" },
+    { "label": "Culture", "category": "culture" },
+    { "label": "Sport", "category": "sport" },
+    { "label": "Diaspora", "category": "diaspora" }
+  ],
+  "homeSections": {
+    "trio": ["securite", "politique", "justice"],
+    "feature": "diaspora",
+    "rows": ["international", "sport", "education"],
+    "trio2": ["societe", "economie", "culture"]
+  },
+  "pages": ["qui-sommes-nous", "mentions-legales", "conditions-generales-dutilisation", "politique-de-confidentialite"],
+  "listingAliases": ["actualites", "latest-news", "news"]
+}
