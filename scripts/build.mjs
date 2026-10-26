@@ -211,9 +211,11 @@ async function buildHome() {
     return outList;
   };
   const [lead] = take(posts, 1, true);
-  const middle = take(posts, 3, true);
+  const middle = take(posts, 4, true);
   const seconds = take(posts, 3, true);
-  const wire = posts.filter(p => p.id !== lead.id && !middle.includes(p)).slice(0, 7);
+  const leadRelated = posts.filter(p => p.id !== lead.id && !used.has(p.id) && p.categories.some(c => lead.categories.includes(c))).slice(0, 3);
+  leadRelated.forEach(p => used.add(p.id));
+  const wire = posts.filter(p => p.id !== lead.id && !middle.includes(p) && !leadRelated.includes(p)).slice(0, 6);
 
   const today = T.dayKey(buildDate);
   let lastDay = null;
@@ -316,6 +318,7 @@ async function buildHome() {
       <a href="${u(lead.path)}">${T.img(lead.image, { eager: true, sizes: '(max-width:820px) 100vw, 50vw' })}${T.label(ctx, lead)}<h1 class="hl">${esc(lead.title)}</h1></a>
       <p class="sf">${esc(T.trim(lead.excerpt, 200))}</p>
       ${T.meta(ctx, lead, { section: false, author: true })}
+      ${leadRelated.length ? `<ul class="lead-related">${leadRelated.map(p => `<li><a href="${u(p.path)}" class="hl">${esc(p.title)}</a></li>`).join('')}</ul>` : ''}
     </article>
     <div class="middle">${middle.map((p, i) => i === 0
       ? T.story(ctx, p, { sizes: '(max-width:820px) 100vw, 25vw' })
