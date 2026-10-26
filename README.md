@@ -20,9 +20,9 @@ The old site (https://ayitianavan.com) is untouched and stays the official site 
 | Menu sections | `"nav"` (uses WordPress category slugs) |
 | Homepage sections | `"homeSections"` |
 | Social links, e-mail, tagline | `"social"`, `"email"`, `"tagline"` |
-| Donation payment pages | `"donate" → "links"`: `card` (Stripe Payment Link), `paypal` (PayPal donate link), `moncash`. `{amount}` in a link is replaced by the chosen amount |
+| Donation payment links (Stripe, PayPal) | `"donate" → "links"`. Step-by-step guide in [DONATIONS.md](DONATIONS.md) |
 | Donation amounts | `"donate" → "amounts"` and `"default"` |
-| Other ways to give (MonCash number, bank) | `"donate" → "otherWays"`, one line each |
+| Other ways to give (for example a bank transfer) | `"donate" → "otherWays"`, one line each |
 | Breaking-news bar | `"breaking": { "text": "…", "url": "…" }`, or mark a post "sticky" in WordPress (shows for 48 hours) |
 | News tips WhatsApp number | `"tips" → "whatsapp"` |
 | Topic packages ("Élections 2026") | `"packages"`: title, intro and the words to look for in headlines; page at `/dossiers/<slug>/` |

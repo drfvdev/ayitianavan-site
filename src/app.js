@@ -76,10 +76,27 @@
       var c = current();
       var note = form.querySelector('[data-note]');
       if (!c.amount || !(+c.amount > 0)) { note.hidden = false; note.textContent = 'Choisissez ou saisissez un montant.'; return; }
-      var url = links[c.method];
-      if (!url) { note.hidden = false; return; }
-      url = url.replace('{amount}', encodeURIComponent(c.amount)).replace('{freq}', c.freq);
-      window.location.href = url;
+      // card: one Stripe link for one-time gifts (donor picks the amount),
+      // and one Stripe link per amount for monthly and yearly gifts
+      var url = '';
+      var custom = !form.querySelector('input[name=amount-' + c.freq + '][value="' + c.amount + '"]');
+      if (c.method === 'paypal') url = links.paypal || '';
+      else {
+        var v = (links.card || {})[c.freq];
+        url = typeof v === 'string' ? v : (v && v[c.amount]) || '';
+        if (!url && v && typeof v === 'object' && custom && links.paypal) {
+          note.hidden = false;
+          note.textContent = 'Pour un montant libre ' + (c.freq === 'month' ? 'chaque mois' : 'chaque année') + ', choisissez PayPal, ou un des montants proposés.';
+          return;
+        }
+      }
+      if (!url) {
+        if (form.hasAttribute('data-configured')) note.textContent = 'Ce choix n’est pas encore disponible en ligne. Choisissez un autre montant ou un autre moyen de paiement.';
+        note.hidden = false;
+        return;
+      }
+      note.hidden = true;
+      window.location.href = url.replace('{amount}', encodeURIComponent(c.amount));
     });
   }
 

@@ -429,6 +429,8 @@ svg.stroke,.tool svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linec
 .support-why .lines li{font-size:17px}
 .support-why .small{font-family:var(--sans);font-size:14px;color:var(--ink-3)}
 
+.merci-links{display:flex;gap:var(--s5);align-items:center;flex-wrap:wrap;font-family:var(--sans)}
+
 /* ---------- responsive ---------- */
 @media (max-width:1060px){
   .front{grid-template-columns:minmax(0,1fr);grid-template-areas:"lead" "wire" "seconds"}

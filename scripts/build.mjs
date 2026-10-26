@@ -487,14 +487,15 @@ async function buildSupport() {
   const d = config.donate;
   const freq = [['once', 'Une fois'], ['month', 'Chaque mois'], ['year', 'Chaque année']];
   const cur = d.currency === 'USD' ? '$' : d.currency;
-  const methods = [['card', 'Carte bancaire'], ['paypal', 'PayPal'], ['moncash', 'MonCash']];
-  const configured = methods.filter(([k]) => d.links[k]);
+  const methods = [['card', 'Carte bancaire'], ['paypal', 'PayPal']];
+  const hasLink = (v) => typeof v === 'string' ? v.trim() !== '' : !!v && Object.values(v).some(hasLink);
+  const configured = methods.filter(([k]) => hasLink(d.links[k]));
   const tiers = (f) => d.amounts[f].map((a, i) => `<label class="tier"><input type="radio" name="amount-${f}" value="${a}"${a === d.default[f] ? ' checked' : ''}><span>${cur}${a}</span></label>`).join('');
   const body = `<div class="wrap support-page">
     <header class="listhead"><h1>Soutenez une information haïtienne indépendante</h1>
       <p class="intro">${esc(config.name)} n'appartient à aucun parti, à aucun homme d'affaires, à aucun gouvernement. Nous publions des informations vérifiées, en français et en kreyòl, pour Haïti et sa diaspora. Vos dons paient les reportages, la vérification et la future chaîne de télévision.</p></header>
     <div class="support-grid">
-      <form class="donate-form" data-donate data-links='${esc(JSON.stringify(d.links))}' data-currency="${esc(d.currency)}">
+      <form class="donate-form" data-donate${configured.length ? ' data-configured' : ''} data-links='${esc(JSON.stringify(d.links))}' data-currency="${esc(d.currency)}">
         <fieldset class="freq"><legend>Fréquence</legend>
           ${freq.map(([k, l], i) => `<label><input type="radio" name="freq" value="${k}"${i === 0 ? ' checked' : ''}><span>${l}</span></label>`).join('')}
         </fieldset>
@@ -519,6 +520,14 @@ async function buildSupport() {
       </div>
     </div>
   </div>`;
+  // Stripe and PayPal send donors back here after a completed payment
+  await page('/merci/', {
+    title: 'Merci pour votre don', noSitemap: true, description: 'Merci de soutenir Ayiti an Avan.',
+    body: `<div class="wrap narrow listing"><header class="listhead"><h1>Merci pour votre soutien</h1>
+      <p class="intro">Votre don aide ${esc(config.name)} à publier une information vérifiée et indépendante, pour Haïti et sa diaspora. Vous recevrez un reçu par e-mail de la part de Stripe ou de PayPal.</p></header>
+      <p class="merci-links"><a class="button" href="${u('/')}">Revenir à l’accueil</a> <a class="more" href="${config.social.whatsapp}" rel="noopener">Suivre la chaîne WhatsApp</a></p></div>`,
+    extraHead: '<meta name="robots" content="noindex">',
+  });
   await page('/soutenir/', { title: 'Soutenir Ayiti an Avan', description: "Faites un don pour soutenir une information haïtienne indépendante.", body, bodyClass: 'is-support' });
 }
 
