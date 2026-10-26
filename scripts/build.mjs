@@ -320,7 +320,7 @@ async function buildHome() {
     <div class="middle">${middle.map((p, i) => i === 0
       ? T.story(ctx, p, { sizes: '(max-width:820px) 100vw, 25vw' })
       : `<article class="story compact"><a href="${u(p.path)}">${T.label(ctx, p)}<h3 class="hl">${esc(p.title)}</h3></a>${T.meta(ctx, p, { section: false })}</article>`).join('')}</div>
-    <aside class="rail">
+    <aside class="siderail">
       ${vids.length ? `<section class="rail-tv" aria-labelledby="h-railtv"><h2 id="h-railtv" class="railhead"><a href="${u('/direct/')}">${config.liveTv ? '<span class="live">En direct</span> ' : ''}Ayiti an Avan TV</a></h2>${T.player(ctx)}</section>` : ''}
       <section class="wire" aria-labelledby="h-wire">
         <h2 id="h-wire" class="railhead"><a href="${u('/actualites/')}">En continu</a></h2>
